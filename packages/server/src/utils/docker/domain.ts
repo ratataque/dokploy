@@ -86,7 +86,7 @@ export const getComposePath = (compose: Compose) => {
 };
 
 export const loadDockerCompose = async (
-	compose: Compose,
+	compose: Compose
 ): Promise<ComposeSpecification | null> => {
 	const path = getComposePath(compose);
 
@@ -99,7 +99,7 @@ export const loadDockerCompose = async (
 };
 
 export const loadDockerComposeRemote = async (
-	compose: Compose,
+	compose: Compose
 ): Promise<ComposeSpecification | null> => {
 	const path = getComposePath(compose);
 	try {
@@ -108,7 +108,7 @@ export const loadDockerComposeRemote = async (
 		}
 		const { stdout, stderr } = await execAsyncRemote(
 			compose.serverId,
-			`cat ${path}`,
+			`cat ${path}`
 		);
 
 		if (stderr) {
@@ -133,7 +133,7 @@ export const readComposeFile = async (compose: Compose) => {
 
 export const writeDomainsToCompose = async (
 	compose: Compose,
-	domains: Domain[],
+	domains: Domain[]
 ) => {
 	if (!domains.length) {
 		return;
@@ -152,7 +152,7 @@ export const writeDomainsToCompose = async (
 export const writeDomainsToComposeRemote = async (
 	compose: Compose,
 	domains: Domain[],
-	logPath: string,
+	logPath: string
 ) => {
 	if (!domains.length) {
 		return "";
@@ -183,7 +183,7 @@ exit 1;
 // (node:59875) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 SIGTERM listeners added to [process]. Use emitter.setMaxListeners() to increase limit
 export const addDomainToCompose = async (
 	compose: Compose,
-	domains: Domain[],
+	domains: Domain[]
 ) => {
 	const { appName } = compose;
 
@@ -203,7 +203,7 @@ export const addDomainToCompose = async (
 		const randomized = randomizeDeployableSpecificationFile(
 			result,
 			compose.isolatedDeploymentsVolume,
-			compose.suffix || compose.appName,
+			compose.suffix || compose.appName
 		);
 		result = randomized;
 	} else if (compose.randomize) {
@@ -263,7 +263,7 @@ export const addDomainToCompose = async (
 		if (!compose.isolatedDeployment) {
 			// Add the dokploy-network to the service
 			result.services[serviceName].networks = addDokployNetworkToService(
-				result.services[serviceName].networks,
+				result.services[serviceName].networks
 			);
 		}
 	}
@@ -278,7 +278,7 @@ export const addDomainToCompose = async (
 
 export const writeComposeFile = async (
 	compose: Compose,
-	composeSpec: ComposeSpecification,
+	composeSpec: ComposeSpecification
 ) => {
 	const path = getComposePath(compose);
 
@@ -295,7 +295,7 @@ export const writeComposeFile = async (
 export const createDomainLabels = (
 	appName: string,
 	domain: Domain,
-	entrypoint: "web" | "websecure",
+	entrypoint: "web" | "websecure"
 ) => {
 	const {
 		host,
@@ -324,13 +324,18 @@ export const createDomainLabels = (
 		middlewares.push("redirect-to-https@file");
 	}
 
+	// Add custom middlewares from file provider
+	if (entrypoint === "web") {
+		middlewares.push();
+	}
+
 	// Add stripPath middleware if needed
 	if (stripPath && path && path !== "/") {
 		const middlewareName = `stripprefix-${appName}-${uniqueConfigKey}`;
 		// Only define middleware once (on web entrypoint)
 		if (entrypoint === "web") {
 			labels.push(
-				`traefik.http.middlewares.${middlewareName}.stripprefix.prefixes=${path}`,
+				`traefik.http.middlewares.${middlewareName}.stripprefix.prefixes=${path}`
 			);
 		}
 		middlewares.push(middlewareName);
@@ -342,7 +347,7 @@ export const createDomainLabels = (
 		// Only define middleware once (on web entrypoint)
 		if (entrypoint === "web") {
 			labels.push(
-				`traefik.http.middlewares.${middlewareName}.addprefix.prefix=${internalPath}`,
+				`traefik.http.middlewares.${middlewareName}.addprefix.prefix=${internalPath}`
 			);
 		}
 		middlewares.push(middlewareName);
@@ -351,7 +356,7 @@ export const createDomainLabels = (
 	// Apply middlewares to router if any exist
 	if (middlewares.length > 0) {
 		labels.push(
-			`traefik.http.routers.${routerName}.middlewares=${middlewares.join(",")}`,
+			`traefik.http.routers.${routerName}.middlewares=${middlewares.join(",")}`
 		);
 	}
 
@@ -359,11 +364,11 @@ export const createDomainLabels = (
 	if (entrypoint === "websecure") {
 		if (certificateType === "letsencrypt") {
 			labels.push(
-				`traefik.http.routers.${routerName}.tls.certresolver=letsencrypt`,
+				`traefik.http.routers.${routerName}.tls.certresolver=letsencrypt`
 			);
 		} else if (certificateType === "custom" && customCertResolver) {
 			labels.push(
-				`traefik.http.routers.${routerName}.tls.certresolver=${customCertResolver}`,
+				`traefik.http.routers.${routerName}.tls.certresolver=${customCertResolver}`
 			);
 		}
 	}
@@ -372,7 +377,7 @@ export const createDomainLabels = (
 };
 
 export const addDokployNetworkToService = (
-	networkService: DefinitionsService["networks"],
+	networkService: DefinitionsService["networks"]
 ) => {
 	let networks = networkService;
 	const network = "dokploy-network";
@@ -394,7 +399,7 @@ export const addDokployNetworkToService = (
 };
 
 export const addDokployNetworkToRoot = (
-	networkRoot: PropertiesNetworks | undefined,
+	networkRoot: PropertiesNetworks | undefined
 ) => {
 	let networks = networkRoot;
 	const network = "dokploy-network";
