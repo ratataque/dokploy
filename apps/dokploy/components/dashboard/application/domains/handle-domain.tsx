@@ -169,12 +169,15 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 			serverId: application?.serverId || "",
 		});
 
-	const availableMiddlewares = [
-		{ id: "middleware-1", name: "Rate Limiting" },
-		{ id: "middleware-2", name: "CORS" },
-		{ id: "middleware-3", name: "Auth Basic" },
-		{ id: "middleware-4", name: "Compression" },
-	];
+	const { data: middlewaresData } = api.middlewares.all.useQuery();
+
+	// Extract middleware names from the nested structure
+	const availableMiddlewares = middlewaresData?.http?.middlewares
+		? Object.keys(middlewaresData.http.middlewares).map(key => ({
+				id: key,
+				name: key,
+			}))
+		: [];
 
 	const {
 		data: services,
@@ -228,7 +231,13 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 				customCertResolver: data?.customCertResolver || undefined,
 				serviceName: data?.serviceName || undefined,
 				domainType: data?.domainType || type,
-				middlewares: data?.middlewares || [],
+				middlewares: data?.middlewares
+					? typeof data.middlewares === "string"
+						? data.middlewares.split(",").filter(m => m.trim())
+						: Array.isArray(data.middlewares)
+							? data.middlewares
+							: []
+					: [],
 			});
 		}
 
@@ -274,6 +283,11 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 				composeId: id,
 			}),
 			...data,
+			// Convert middlewares array to comma-separated string
+			middlewares:
+				data.middlewares && data.middlewares.length > 0
+					? data.middlewares.join(",")
+					: undefined,
 		})
 			.then(async () => {
 				toast.success(dictionary.success);
@@ -733,18 +747,25 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 																</SelectTrigger>
 															</FormControl>
 															<SelectContent>
-																{availableMiddlewares
-																	?.filter(middleware => !field.value?.includes(middleware.id))
-																	.map(middleware => (
-																		<SelectItem key={middleware.id} value={middleware.id}>
-																			{middleware.name}
+																{Array.isArray(availableMiddlewares) &&
+																	availableMiddlewares
+																		.filter(middleware => !field.value?.includes(middleware.id))
+																		.map(middleware => (
+																			<SelectItem key={middleware.id} value={middleware.id}>
+																				{middleware.name}
+																			</SelectItem>
+																		))}
+																{Array.isArray(availableMiddlewares) &&
+																	availableMiddlewares.every(middleware =>
+																		field.value?.includes(middleware.id)
+																	) && (
+																		<SelectItem value="none" disabled>
+																			All middlewares selected
 																		</SelectItem>
-																	))}
-																{availableMiddlewares?.every(middleware =>
-																	field.value?.includes(middleware.id)
-																) && (
+																	)}
+																{!Array.isArray(availableMiddlewares) && (
 																	<SelectItem value="none" disabled>
-																		All middlewares selected
+																		No middlewares available
 																	</SelectItem>
 																)}
 															</SelectContent>
