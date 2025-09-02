@@ -438,6 +438,7 @@ table domain {
   certificateType certificateType [not null, default: 'none']
   internalPath text [default: '/']
   stripPath boolean [not null, default: false]
+  middlewares text
 }
 
 table email {
