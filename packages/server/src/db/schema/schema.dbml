@@ -352,6 +352,7 @@ table domain {
   applicationId text
   previewDeploymentId text
   certificateType certificateType [not null, default: 'none']
+  middlewares text
 }
 
 table email {

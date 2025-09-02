@@ -44,15 +44,16 @@ export const domains = pgTable("domain", {
 	customCertResolver: text("customCertResolver"),
 	applicationId: text("applicationId").references(
 		() => applications.applicationId,
-		{ onDelete: "cascade" },
+		{ onDelete: "cascade" }
 	),
 	previewDeploymentId: text("previewDeploymentId").references(
 		(): AnyPgColumn => previewDeployments.previewDeploymentId,
-		{ onDelete: "cascade" },
+		{ onDelete: "cascade" }
 	),
 	certificateType: certificateType("certificateType").notNull().default("none"),
 	internalPath: text("internalPath").default("/"),
 	stripPath: boolean("stripPath").notNull().default(false),
+	middlewares: text("middlewares").default(""),
 });
 
 export const domainsRelations = relations(domains, ({ one }) => ({
@@ -86,6 +87,7 @@ export const apiCreateDomain = createSchema.pick({
 	previewDeploymentId: true,
 	internalPath: true,
 	stripPath: true,
+	middlewares: true,
 });
 
 export const apiFindDomain = createSchema
@@ -118,5 +120,6 @@ export const apiUpdateDomain = createSchema
 		domainType: true,
 		internalPath: true,
 		stripPath: true,
+		middlewares: true,
 	})
 	.merge(createSchema.pick({ domainId: true }).required());
