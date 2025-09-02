@@ -17,17 +17,13 @@ import { giteaRouter } from "./routers/gitea";
 import { githubRouter } from "./routers/github";
 import { gitlabRouter } from "./routers/gitlab";
 import { mariadbRouter } from "./routers/mariadb";
+import { middlwaresRouter } from "./routers/middlewares";
 import { mongoRouter } from "./routers/mongo";
 import { mountRouter } from "./routers/mount";
 import { mysqlRouter } from "./routers/mysql";
 import { notificationRouter } from "./routers/notification";
 import { organizationRouter } from "./routers/organization";
 import { patchRouter } from "./routers/patch";
-import { auditLogRouter } from "./routers/proprietary/audit-log";
-import { customRoleRouter } from "./routers/proprietary/custom-role";
-import { licenseKeyRouter } from "./routers/proprietary/license-key";
-import { ssoRouter } from "./routers/proprietary/sso";
-import { whitelabelingRouter } from "./routers/proprietary/whitelabeling";
 import { portRouter } from "./routers/port";
 import { postgresRouter } from "./routers/postgres";
 import { previewDeploymentRouter } from "./routers/preview-deployment";
@@ -43,6 +39,7 @@ import { settingsRouter } from "./routers/settings";
 import { sshRouter } from "./routers/ssh-key";
 import { stripeRouter } from "./routers/stripe";
 import { swarmRouter } from "./routers/swarm";
+import { tagRouter } from "./routers/tag";
 import { userRouter } from "./routers/user";
 import { volumeBackupsRouter } from "./routers/volume-backups";
 /**
@@ -98,6 +95,8 @@ export const appRouter = createTRPCRouter({
 	volumeBackups: volumeBackupsRouter,
 	environment: environmentRouter,
 	patch: patchRouter,
+	tag: tagRouter,
+	middlewares: middlwaresRouter,
 });
 
 // export type definition of API
