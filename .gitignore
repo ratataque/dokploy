@@ -5,6 +5,8 @@ node_modules
 .pnp
 .pnp.js
 .docker
+bun.lock
+bun.lockb
 
 # Local env files
 .env
