@@ -307,6 +307,7 @@ export const createDomainLabels = (
 		customCertResolver,
 		stripPath,
 		internalPath,
+		middlewares,
 	} = domain;
 	const routerName = `${appName}-${uniqueConfigKey}-${entrypoint}`;
 	const labels = [
@@ -317,16 +318,26 @@ export const createDomainLabels = (
 	];
 
 	// Collect middlewares for this router
-	const middlewares: string[] = [];
+	const new_middlewares: string[] = [];
 
 	// Add HTTPS redirect for web entrypoint (must be first)
 	if (entrypoint === "web" && https) {
-		middlewares.push("redirect-to-https@file");
+		new_middlewares.push("redirect-to-https@file");
 	}
 
 	// Add custom middlewares from file provider
-	if (entrypoint === "web") {
-		middlewares.push();
+	if (
+		middlewares &&
+		typeof middlewares === "string" &&
+		middlewares.trim().length > 0
+	) {
+		new_middlewares.push(
+			...middlewares
+				.split(",")
+				.map(mw => mw.trim())
+				.filter(mw => mw.length > 0)
+				.join(",")
+		);
 	}
 
 	// Add stripPath middleware if needed
@@ -338,7 +349,7 @@ export const createDomainLabels = (
 				`traefik.http.middlewares.${middlewareName}.stripprefix.prefixes=${path}`
 			);
 		}
-		middlewares.push(middlewareName);
+		new_middlewares.push(middlewareName);
 	}
 
 	// Add internalPath middleware if needed
@@ -350,13 +361,13 @@ export const createDomainLabels = (
 				`traefik.http.middlewares.${middlewareName}.addprefix.prefix=${internalPath}`
 			);
 		}
-		middlewares.push(middlewareName);
+		new_middlewares.push(middlewareName);
 	}
 
 	// Apply middlewares to router if any exist
-	if (middlewares.length > 0) {
+	if (new_middlewares.length > 0) {
 		labels.push(
-			`traefik.http.routers.${routerName}.middlewares=${middlewares.join(",")}`
+			`traefik.http.routers.${routerName}.middlewares=${new_middlewares.join(",")}`
 		);
 	}
 
