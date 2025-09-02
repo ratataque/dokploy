@@ -331,13 +331,7 @@ export const createDomainLabels = (
 		typeof middlewares === "string" &&
 		middlewares.trim().length > 0
 	) {
-		new_middlewares.push(
-			...middlewares
-				.split(",")
-				.map(mw => mw.trim())
-				.filter(mw => mw.length > 0)
-				.join(",")
-		);
+		new_middlewares.push(middlewares);
 	}
 
 	// Add stripPath middleware if needed
