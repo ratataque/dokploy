@@ -172,12 +172,23 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 	const { data: middlewaresData } = api.middlewares.all.useQuery();
 
 	// Extract middleware names from the nested structure
-	const availableMiddlewares = middlewaresData?.http?.middlewares
-		? Object.keys(middlewaresData.http.middlewares).map(key => ({
-				id: key,
-				name: key,
-			}))
+	// removing not custom middlewares redirect-to-https@file
+	const availableMiddlewares = middlewaresData
+		? middlewaresData
+				.filter(key => key !== "redirect-to-https@file")
+				.map(key => ({
+					id: key,
+					name: key,
+				}))
 		: [];
+
+	// // Extract middleware names from the nested structure
+	// const availableMiddlewares = middlewaresData
+	// 	? middlewaresData.map(key => ({
+	// 			id: key,
+	// 			name: key,
+	// 		}))
+	// 	: [];
 
 	const {
 		data: services,
@@ -284,10 +295,7 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 			}),
 			...data,
 			// Convert middlewares array to comma-separated string
-			middlewares:
-				data.middlewares && data.middlewares.length > 0
-					? data.middlewares.join(",")
-					: undefined,
+			middlewares: data.middlewares && data.middlewares.join(","),
 		})
 			.then(async () => {
 				toast.success(dictionary.success);
@@ -791,6 +799,7 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 																					const newMiddlewares =
 																						field.value?.filter(id => id !== middlewareId) || [];
 																					field.onChange(newMiddlewares);
+																					console.log(newMiddlewares);
 																				}}
 																				className="ml-1 text-muted-foreground hover:text-foreground"
 																			>
