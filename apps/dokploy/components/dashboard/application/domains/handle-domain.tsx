@@ -799,7 +799,6 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 																					const newMiddlewares =
 																						field.value?.filter(id => id !== middlewareId) || [];
 																					field.onChange(newMiddlewares);
-																					console.log(newMiddlewares);
 																				}}
 																				className="ml-1 text-muted-foreground hover:text-foreground"
 																			>
