@@ -53,9 +53,9 @@ RUN curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh && rm
 
 ARG NIXPACKS_VERSION=1.39.0
 RUN curl -sSL https://nixpacks.com/install.sh -o install.sh \
-    && chmod +x install.sh \
-    && ./install.sh \
-    && pnpm install -g tsx
+  && chmod +x install.sh \
+  && ./install.sh \
+  && pnpm install -g tsx
 
 # Install Railpack
 ARG RAILPACK_VERSION=0.2.2
@@ -64,5 +64,5 @@ RUN curl -sSL https://railpack.com/install.sh | bash
 # Install buildpacks
 COPY --from=buildpacksio/pack:0.35.0 /usr/local/bin/pack /usr/local/bin/pack
 
-EXPOSE 3000
+# EXPOSE 3000
 CMD [ "pnpm", "start" ]
