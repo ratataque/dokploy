@@ -27,14 +27,15 @@ export const getDokployImageTag = () => {
 };
 
 export const getDokployImage = () => {
-	return `dokploy/dokploy:${getDokployImageTag()}`;
+	const baseImage = process.env.CUSTOM_DOKPLOY_IMAGE ?? "dokploy/dokploy";
+	return `${baseImage}:${getDokployImageTag()}`;
 };
 
 export const pullLatestRelease = async () => {
 	const stream = await docker.pull(getDokployImage());
 	await new Promise((resolve, reject) => {
 		docker.modem.followProgress(stream, (err, res) =>
-			err ? reject(err) : resolve(res),
+			err ? reject(err) : resolve(res)
 		);
 	});
 };
@@ -42,7 +43,7 @@ export const pullLatestRelease = async () => {
 /** Returns Dokploy docker service image digest */
 export const getServiceImageDigest = async () => {
 	const { stdout } = await execAsync(
-		"docker service inspect dokploy --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}'",
+		"docker service inspect dokploy --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}'"
 	);
 
 	const currentDigest = stdout.trim().split("@")[1];
@@ -85,7 +86,7 @@ export const getUpdateData = async (): Promise<IUpdateData> => {
 	}
 
 	const imageTag = getDokployImageTag();
-	const searchedDigest = allResults.find((t) => t.name === imageTag)?.digest;
+	const searchedDigest = allResults.find(t => t.name === imageTag)?.digest;
 
 	if (!searchedDigest) {
 		return DEFAULT_UPDATE_DATA;
@@ -93,7 +94,7 @@ export const getUpdateData = async (): Promise<IUpdateData> => {
 
 	if (imageTag === "latest") {
 		const versionedTag = allResults.find(
-			(t) => t.digest === searchedDigest && t.name.startsWith("v"),
+			t => t.digest === searchedDigest && t.name.startsWith("v")
 		);
 
 		if (!versionedTag) {
@@ -118,7 +119,7 @@ interface TreeDataItem {
 
 export const readDirectory = async (
 	dirPath: string,
-	serverId?: string,
+	serverId?: string
 ): Promise<TreeDataItem[]> => {
 	if (serverId) {
 		const { stdout } = await execAsyncRemote(
@@ -169,7 +170,7 @@ root_dir=${dirPath}
 process_items "$root_dir" json_output
 
 echo "$json_output"
-			`,
+			`
 		);
 		const result = JSON.parse(stdout);
 		return result;
@@ -234,7 +235,7 @@ export const cleanupFullDocker = async (serverId?: string | null) => {
 	${cleanupContainers}
 	${cleanupSystem}
 	${cleanupBuilder}
-			`,
+			`
 			);
 		}
 		await execAsync(`
@@ -251,7 +252,7 @@ export const cleanupFullDocker = async (serverId?: string | null) => {
 
 export const getDockerResourceType = async (
 	resourceName: string,
-	serverId?: string,
+	serverId?: string
 ) => {
 	let result = "";
 	const command = `
@@ -288,7 +289,7 @@ export const getDockerResourceType = async (
 
 export const reloadDockerResource = async (
 	resourceName: string,
-	serverId?: string,
+	serverId?: string
 ) => {
 	const resourceType = await getDockerResourceType(resourceName, serverId);
 	let command = "";
@@ -306,7 +307,7 @@ export const reloadDockerResource = async (
 
 export const readEnvironmentVariables = async (
 	resourceName: string,
-	serverId?: string,
+	serverId?: string
 ) => {
 	const resourceType = await getDockerResourceType(resourceName, serverId);
 	let command = "";
@@ -331,7 +332,7 @@ export const readEnvironmentVariables = async (
 
 export const readPorts = async (
 	resourceName: string,
-	serverId?: string,
+	serverId?: string
 ): Promise<
 	{ targetPort: number; publishedPort: number; protocol?: string }[]
 > => {
@@ -387,14 +388,14 @@ export const readPorts = async (
 		}
 	}
 	return ports.filter(
-		(port: any) => port.targetPort !== 80 && port.targetPort !== 443,
+		(port: any) => port.targetPort !== 80 && port.targetPort !== 443
 	);
 };
 
 export const writeTraefikSetup = async (input: TraefikOptions) => {
 	const resourceType = await getDockerResourceType(
 		"dokploy-traefik",
-		input.serverId,
+		input.serverId
 	);
 	if (resourceType === "service") {
 		await initializeTraefikService({
