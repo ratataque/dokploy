@@ -7,7 +7,6 @@ import {
 } from "@dokploy/server/utils/process/execAsync";
 import { and, eq } from "drizzle-orm";
 
-import semver from "semver";
 import { db } from "../db";
 import { compose } from "../db/schema";
 import {
@@ -61,94 +60,47 @@ export const getServiceImageDigest = async () => {
 
 /** Returns latest version number and information whether server update is available by comparing current image's digest against digest for provided image tag via Docker hub API. */
 export const getUpdateData = async (
-	currentVersion: string,
+	_currentVersion: string,
 ): Promise<IUpdateData> => {
+	let currentDigest: string;
 	try {
-		const baseUrl =
-			"https://hub.docker.com/v2/repositories/dokploy/dokploy/tags";
-		let url: string | null = `${baseUrl}?page_size=100`;
-		let allResults: { digest: string; name: string }[] = [];
-
-		// Fetch all tags from Docker Hub
-		while (url) {
-			const response = await fetch(url, {
-				method: "GET",
-				headers: { "Content-Type": "application/json" },
-			});
-
-			const data = (await response.json()) as {
-				next: string | null;
-				results: { digest: string; name: string }[];
-			};
-
-			allResults = allResults.concat(data.results);
-			url = data?.next;
-		}
-
-		const currentImageTag = getDokployImageTag();
-
-		// Special handling for canary and feature branches
-		// For development versions (canary/feature), don't perform update checks
-		// These are unstable versions that change frequently, and users on these
-		// branches are expected to manually manage updates
-		if (currentImageTag === "canary" || currentImageTag === "feature") {
-			const currentDigest = await getServiceImageDigest();
-			const latestDigest = allResults.find(
-				(t) => t.name === currentImageTag,
-			)?.digest;
-			if (!latestDigest) {
-				return DEFAULT_UPDATE_DATA;
-			}
-			if (currentDigest !== latestDigest) {
-				return {
-					latestVersion: currentImageTag,
-					updateAvailable: true,
-				};
-			}
-			return {
-				latestVersion: currentImageTag,
-				updateAvailable: false,
-			};
-		}
-
-		// For stable versions, use semver comparison
-		// Find the "latest" tag and get its digest
-		const latestTag = allResults.find((t) => t.name === "latest");
-
-		if (!latestTag) {
-			return DEFAULT_UPDATE_DATA;
-		}
-
-		// Find the versioned tag (v0.x.x) that has the same digest as "latest"
-		const latestVersionTag = allResults.find(
-			(t) => t.digest === latestTag.digest && t.name.startsWith("v"),
-		);
-
-		if (!latestVersionTag) {
-			return DEFAULT_UPDATE_DATA;
-		}
-
-		const latestVersion = latestVersionTag.name;
-
-		// Use semver to compare versions for stable releases
-		const cleanedCurrent = semver.clean(currentVersion);
-		const cleanedLatest = semver.clean(latestVersion);
-
-		if (!cleanedCurrent || !cleanedLatest) {
-			return DEFAULT_UPDATE_DATA;
-		}
-
-		// Check if the latest version is greater than the current version
-		const updateAvailable = semver.gt(cleanedLatest, cleanedCurrent);
-
-		return {
-			latestVersion,
-			updateAvailable,
-		};
-	} catch (error) {
-		console.error("Error fetching update data:", error);
+		currentDigest = await getServiceImageDigest();
+	} catch {
 		return DEFAULT_UPDATE_DATA;
 	}
+
+	// Always check against the latest tag from the custom registry image.
+	const registryBase = "https://registry.grimmely.com";
+	const repository = "dokploy/custom";
+	const tag = "latest";
+	const manifestUrl = `${registryBase}/v2/${repository}/manifests/${tag}`;
+
+	let latestDigest: string | null = null;
+	try {
+		const response = await fetch(manifestUrl, {
+			headers: {
+				Accept: "application/vnd.docker.distribution.manifest.v2+json",
+			},
+		});
+
+		if (!response.ok) {
+			return DEFAULT_UPDATE_DATA;
+		}
+
+		latestDigest = response.headers.get("Docker-Content-Digest");
+	} catch {
+		return DEFAULT_UPDATE_DATA;
+	}
+
+	if (!latestDigest) {
+		return DEFAULT_UPDATE_DATA;
+	}
+
+	const updateAvailable = latestDigest !== currentDigest;
+	return {
+		latestVersion: "latest",
+		updateAvailable,
+	};
 };
 
 interface TreeDataItem {
