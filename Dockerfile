@@ -53,9 +53,9 @@ RUN curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh --ver
 
 ARG NIXPACKS_VERSION=1.41.0
 RUN curl -sSL https://nixpacks.com/install.sh -o install.sh \
-    && chmod +x install.sh \
-    && ./install.sh \
-    && pnpm install -g tsx
+  && chmod +x install.sh \
+  && ./install.sh \
+  && pnpm install -g tsx
 
 # Install Railpack
 ARG RAILPACK_VERSION=0.15.4
@@ -64,9 +64,9 @@ RUN curl -sSL https://railpack.com/install.sh | bash
 # Install buildpacks
 COPY --from=buildpacksio/pack:0.39.1 /usr/local/bin/pack /usr/local/bin/pack
 
-EXPOSE 3000
+# EXPOSE 3000
 
 HEALTHCHECK --interval=10s --timeout=3s --retries=10 \
   CMD curl -fs http://localhost:3000/api/trpc/settings.health || exit 1
 
-  CMD ["sh", "-c", "pnpm run wait-for-postgres && exec pnpm start"]
+CMD ["sh", "-c", "pnpm run wait-for-postgres && exec pnpm start"]
