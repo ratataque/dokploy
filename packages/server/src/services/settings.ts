@@ -62,52 +62,48 @@ export const getUpdateData = async (): Promise<IUpdateData> => {
 		currentDigest = await getServiceImageDigest();
 	} catch {
 		// Docker service might not exist locally
-		// You can run the # Installation command for docker service create mentioned in the below docs to test it locally:
-		// https://docs.dokploy.com/docs/core/manual-installation
+
 		return DEFAULT_UPDATE_DATA;
 	}
 
-	const baseUrl = "https://hub.docker.com/v2/repositories/dokploy/dokploy/tags";
-	let url: string | null = `${baseUrl}?page_size=100`;
-	let allResults: { digest: string; name: string }[] = [];
-	while (url) {
-		const response = await fetch(url, {
-			method: "GET",
-			headers: { "Content-Type": "application/json" },
+	// Always check against the 'latest' tag in the custom registry
+	const registryBase = "https://registry.grimmely.com";
+	const repository = "dokploy/custom";
+	const tag = "latest";
+
+	// The Docker Registry V2 API endpoint for manifest:
+	// GET /v2/<name>/manifests/<reference>
+	const manifestUrl = `${registryBase}/v2/${repository}/manifests/${tag}`;
+
+	let latestDigest: string | null = null;
+	try {
+		// The registry API expects Accept header for OCI/manifest v2
+		const response = await fetch(manifestUrl, {
+			headers: {
+				Accept: "application/vnd.docker.distribution.manifest.v2+json",
+			},
 		});
 
-		const data = (await response.json()) as {
-			next: string | null;
-			results: { digest: string; name: string }[];
-		};
-
-		allResults = allResults.concat(data.results);
-		url = data?.next;
-	}
-
-	const imageTag = getDokployImageTag();
-	const searchedDigest = allResults.find(t => t.name === imageTag)?.digest;
-
-	if (!searchedDigest) {
-		return DEFAULT_UPDATE_DATA;
-	}
-
-	if (imageTag === "latest") {
-		const versionedTag = allResults.find(
-			t => t.digest === searchedDigest && t.name.startsWith("v")
-		);
-
-		if (!versionedTag) {
+		if (!response.ok) {
 			return DEFAULT_UPDATE_DATA;
 		}
 
-		const { name: latestVersion, digest } = versionedTag;
-		const updateAvailable = digest !== currentDigest;
-
-		return { latestVersion, updateAvailable };
+		// The digest is in the Docker-Content-Digest header
+		latestDigest = response.headers.get("Docker-Content-Digest");
+	} catch {
+		return DEFAULT_UPDATE_DATA;
 	}
-	const updateAvailable = searchedDigest !== currentDigest;
-	return { latestVersion: imageTag, updateAvailable };
+
+	if (!latestDigest) {
+		return DEFAULT_UPDATE_DATA;
+	}
+
+	const updateAvailable = latestDigest !== currentDigest;
+
+	return {
+		latestVersion: "latest",
+		updateAvailable,
+	};
 };
 
 interface TreeDataItem {
