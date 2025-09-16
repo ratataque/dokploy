@@ -11,7 +11,7 @@
 </div>
 <br />
 
-Dokploy is a free, self-hostable Platform as a Service (PaaS) that simplifies the deployment and management of applications and databases.
+Fork of dokploy to add custom middleware for traefik
 
 ## ✨ Features
 
@@ -88,9 +88,10 @@ For detailed documentation, visit [docs.dokploy.com](https://docs.dokploy.com).
 
 <div>
 
-  <a href="https://cloudblast.io/?ref=dokploy"><img src="https://cloudblast.io/img/logo-icon.193cf13e.svg" width="250px" alt="Cloudblast.io"/></a>
+<a href="https://cloudblast.io/?ref=dokploy"><img src="https://cloudblast.io/img/logo-icon.193cf13e.svg" width="250px" alt="Cloudblast.io"/></a>
 
-  <a href="https://synexa.ai/?ref=dokploy"><img src=".github/sponsors/synexa.png" width="65px" alt="Synexa"/></a>
+<a href="https://synexa.ai/?ref=dokploy"><img src=".github/sponsors/synexa.png" width="65px" alt="Synexa"/></a>
+
 </div>
 
 ### Community Backers 🤝
