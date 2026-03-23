@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tooltip";
 import { api } from "@/utils/api";
 import { NodeCard } from "./details/details-card";
+import { SwarmDefaultsSettings } from "./swarm-defaults-settings";
 
 interface Props {
 	serverId?: string;
@@ -83,14 +84,17 @@ export default function SwarmMonitorCard({ serverId }: Props) {
 						</p>
 					</div>
 					{!serverId && (
-						<Button
-							onClick={() =>
-								window.location.replace("/dashboard/settings/cluster")
-							}
-						>
-							<Settings className="mr-2 h-4 w-4" />
-							Manage Cluster
-						</Button>
+						<div className="flex items-center gap-2">
+							<SwarmDefaultsSettings nodes={nodes} />
+							<Button
+								onClick={() =>
+									window.location.replace("/dashboard/settings/cluster")
+								}
+							>
+								<Settings className="mr-2 h-4 w-4" />
+								Manage Cluster
+							</Button>
+						</div>
 					)}
 				</header>
 

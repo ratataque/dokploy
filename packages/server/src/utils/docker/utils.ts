@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Readable } from "node:stream";
 import { docker, paths } from "@dokploy/server/constants";
+import type { PlacementSwarm } from "@dokploy/server/db/schema/shared";
 import type { Compose } from "@dokploy/server/services/compose";
 import type { ContainerInfo, ResourceRequirements } from "dockerode";
 import { parse } from "dotenv";
@@ -494,6 +495,8 @@ export const calculateResources = ({
 
 export const generateConfigContainer = (
 	application: Partial<ApplicationNested>,
+	defaultPlacementSwarm?: PlacementSwarm | null,
+	globalPlacementConstraints?: string[] | null,
 ) => {
 	const {
 		healthCheckSwarm,
@@ -518,6 +521,19 @@ export const generateConfigContainer = (
 
 	const haveMounts = mounts && mounts.length > 0;
 
+	const sanitizedGlobalPlacementConstraints =
+		globalPlacementConstraints?.filter(Boolean) ?? [];
+	const globalPlacementSwarm =
+		sanitizedGlobalPlacementConstraints.length > 0
+			? {
+					Constraints: sanitizedGlobalPlacementConstraints,
+				}
+			: null;
+
+	// Merge placement constraints: service > project default > global default > system fallback
+	const mergedPlacementSwarm =
+		placementSwarm || defaultPlacementSwarm || globalPlacementSwarm;
+
 	return {
 		...(healthCheckSwarm && {
 			HealthCheck: healthCheckSwarm,
@@ -525,9 +541,9 @@ export const generateConfigContainer = (
 		...(restartPolicySwarm && {
 			RestartPolicy: restartPolicySwarm,
 		}),
-		...(placementSwarm
+		...(mergedPlacementSwarm
 			? {
-					Placement: placementSwarm,
+					Placement: mergedPlacementSwarm,
 				}
 			: {
 					// if app have mounts keep manager as constraint

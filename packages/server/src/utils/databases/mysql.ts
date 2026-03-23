@@ -1,5 +1,6 @@
 import type { InferResultType } from "@dokploy/server/types/with";
 import type { CreateServiceOptions } from "dockerode";
+import { getGlobalSwarmPlacementConstraints } from "../../services/web-server-settings";
 import {
 	calculateResources,
 	generateBindMounts,
@@ -16,6 +17,7 @@ export type MysqlNested = InferResultType<
 >;
 
 export const buildMysql = async (mysql: MysqlNested) => {
+	const globalPlacementConstraints = await getGlobalSwarmPlacementConstraints();
 	const {
 		appName,
 		env,
@@ -55,7 +57,11 @@ export const buildMysql = async (mysql: MysqlNested) => {
 		StopGracePeriod,
 		EndpointSpec,
 		Ulimits,
-	} = generateConfigContainer(mysql);
+	} = generateConfigContainer(
+		mysql,
+		mysql.environment.project.defaultPlacementSwarm,
+		globalPlacementConstraints,
+	);
 	const resources = calculateResources({
 		memoryLimit,
 		memoryReservation,

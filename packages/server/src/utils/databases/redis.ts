@@ -1,5 +1,6 @@
 import type { InferResultType } from "@dokploy/server/types/with";
 import type { CreateServiceOptions } from "dockerode";
+import { getGlobalSwarmPlacementConstraints } from "../../services/web-server-settings";
 import {
 	calculateResources,
 	generateBindMounts,
@@ -15,6 +16,7 @@ export type RedisNested = InferResultType<
 	{ mounts: true; environment: { with: { project: true } } }
 >;
 export const buildRedis = async (redis: RedisNested) => {
+	const globalPlacementConstraints = await getGlobalSwarmPlacementConstraints();
 	const {
 		appName,
 		env,
@@ -46,7 +48,11 @@ export const buildRedis = async (redis: RedisNested) => {
 		StopGracePeriod,
 		EndpointSpec,
 		Ulimits,
-	} = generateConfigContainer(redis);
+	} = generateConfigContainer(
+		redis,
+		redis.environment.project.defaultPlacementSwarm,
+		globalPlacementConstraints,
+	);
 	const resources = calculateResources({
 		memoryLimit,
 		memoryReservation,

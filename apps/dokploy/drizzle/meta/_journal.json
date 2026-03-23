@@ -1072,6 +1072,20 @@
       "when": 1774222811729,
       "tag": "0152_serious_whirlwind",
       "breakpoints": true
+    },
+    {
+      "idx": 153,
+      "version": "7",
+      "when": 1774229000000,
+      "tag": "0153_helpful_aurora",
+      "breakpoints": true
+    },
+    {
+      "idx": 154,
+      "version": "7",
+      "when": 1774252000000,
+      "tag": "0154_smooth_silverclaw",
+      "breakpoints": true
     }
   ]
 }

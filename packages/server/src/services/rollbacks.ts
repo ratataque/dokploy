@@ -24,6 +24,7 @@ import type { Mount } from "./mount";
 import type { Port } from "./port";
 import type { Project } from "./project";
 import { type Registry, safeDockerLoginCommand } from "./registry";
+import { getGlobalSwarmPlacementConstraints } from "./web-server-settings";
 
 export const createRollback = async (
 	input: z.infer<typeof createRollbackSchema>,
@@ -201,6 +202,7 @@ const rollbackApplication = async (
 		rollbackRegistry?: Registry;
 	},
 ) => {
+	const globalPlacementConstraints = await getGlobalSwarmPlacementConstraints();
 	if (!fullContext) {
 		throw new Error("Full context is required for rollback");
 	}
@@ -246,7 +248,11 @@ const rollbackApplication = async (
 		UpdateConfig,
 		Networks,
 		Ulimits,
-	} = generateConfigContainer(fullContext as ApplicationNested);
+	} = generateConfigContainer(
+		fullContext as ApplicationNested,
+		fullContext.environment.project.defaultPlacementSwarm,
+		globalPlacementConstraints,
+	);
 
 	const bindsMount = generateBindMounts(mounts);
 	const envVariables = prepareEnvironmentVariables(

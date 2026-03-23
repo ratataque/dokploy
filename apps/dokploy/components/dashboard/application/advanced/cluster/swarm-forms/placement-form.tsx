@@ -81,6 +81,10 @@ export const PlacementForm = ({ id, type }: PlacementFormProps) => {
 	const constraints = form.watch("Constraints") || [];
 	const preferences = form.watch("Preferences") || [];
 	const platforms = form.watch("Platforms") || [];
+	const hasServicePlacement = Boolean(data?.placementSwarm);
+	const hasProjectDefaultPlacement = Boolean(
+		data?.environment?.project?.defaultPlacementSwarm,
+	);
 
 	useEffect(() => {
 		if (data?.placementSwarm) {
@@ -195,6 +199,12 @@ export const PlacementForm = ({ id, type }: PlacementFormProps) => {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+				{!hasServicePlacement && hasProjectDefaultPlacement && (
+					<FormDescription>
+						Using project default placement constraints. Saving this form will
+						override defaults for this service.
+					</FormDescription>
+				)}
 				<div>
 					<FormLabel>Constraints</FormLabel>
 					<FormDescription>

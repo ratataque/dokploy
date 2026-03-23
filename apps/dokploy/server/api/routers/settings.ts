@@ -44,8 +44,8 @@ import {
 	writeTraefikConfigInPath,
 	writeTraefikSetup,
 } from "@dokploy/server";
-import { checkPermission } from "@dokploy/server/services/permission";
 import { db } from "@dokploy/server/db";
+import { checkPermission } from "@dokploy/server/services/permission";
 import { generateOpenApiDocument } from "@dokploy/trpc-openapi";
 import { TRPCError } from "@trpc/server";
 import { eq, sql } from "drizzle-orm";
@@ -85,6 +85,53 @@ export const settingsRouter = createTRPCRouter({
 		const settings = await getWebServerSettings();
 		return settings;
 	}),
+	getSwarmDefaults: protectedProcedure.query(async ({ ctx }) => {
+		if (IS_CLOUD) {
+			return {
+				placementConstraints: [],
+			};
+		}
+		await checkPermission(ctx, { server: ["read"] });
+		const settings = await getWebServerSettings();
+		return (
+			settings?.swarmDefaultsConfig ?? {
+				placementConstraints: [],
+			}
+		);
+	}),
+	updateSwarmDefaults: adminProcedure
+		.input(
+			z.object({
+				placementConstraints: z.array(z.string()),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			if (IS_CLOUD) {
+				return {
+					placementConstraints: [],
+				};
+			}
+			const sanitizedConstraints = Array.from(
+				new Set(
+					input.placementConstraints.map((constraint) => constraint.trim()),
+				),
+			).filter(Boolean);
+			const settings = await updateWebServerSettings({
+				swarmDefaultsConfig: {
+					placementConstraints: sanitizedConstraints,
+				},
+			});
+			await audit(ctx, {
+				action: "update",
+				resourceType: "settings",
+				resourceName: "swarm-defaults",
+			});
+			return (
+				settings?.swarmDefaultsConfig ?? {
+					placementConstraints: [],
+				}
+			);
+		}),
 	reloadServer: adminProcedure.mutation(async ({ ctx }) => {
 		if (IS_CLOUD) {
 			return true;

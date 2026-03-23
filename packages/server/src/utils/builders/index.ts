@@ -1,5 +1,6 @@
 import type { InferResultType } from "@dokploy/server/types/with";
 import type { CreateServiceOptions } from "dockerode";
+import { getGlobalSwarmPlacementConstraints } from "../../services/web-server-settings";
 import { getRegistryTag, uploadImageRemoteCommand } from "../cluster/upload";
 import {
 	calculateResources,
@@ -77,6 +78,7 @@ export const getBuildCommand = async (application: ApplicationNested) => {
 export const mechanizeDockerContainer = async (
 	application: ApplicationNested,
 ) => {
+	const globalPlacementConstraints = await getGlobalSwarmPlacementConstraints();
 	const {
 		appName,
 		env,
@@ -111,7 +113,11 @@ export const mechanizeDockerContainer = async (
 		StopGracePeriod,
 		EndpointSpec,
 		Ulimits,
-	} = generateConfigContainer(application);
+	} = generateConfigContainer(
+		application,
+		application.environment.project.defaultPlacementSwarm,
+		globalPlacementConstraints,
+	);
 
 	const bindsMount = generateBindMounts(mounts);
 	const filesMount = generateFileMounts(appName, application);

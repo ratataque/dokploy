@@ -66,6 +66,15 @@ export const webServerSettings = pgTable("webServerSettings", {
 				},
 			},
 		}),
+	// Global Swarm Defaults
+	swarmDefaultsConfig: jsonb("swarmDefaultsConfig")
+		.$type<{
+			placementConstraints: string[];
+		}>()
+		.notNull()
+		.default({
+			placementConstraints: [],
+		}),
 	// Whitelabeling Configuration (Enterprise / Proprietary)
 	whitelabelingConfig: jsonb("whitelabelingConfig")
 		.$type<{
@@ -150,6 +159,11 @@ export const apiUpdateWebServerSettings = createSchema.partial().extend({
 					exclude: z.array(z.string()),
 				}),
 			}),
+		})
+		.optional(),
+	swarmDefaultsConfig: z
+		.object({
+			placementConstraints: z.array(z.string()),
 		})
 		.optional(),
 	cleanupCacheApplications: z.boolean().optional(),

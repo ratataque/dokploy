@@ -1,5 +1,6 @@
 import type { InferResultType } from "@dokploy/server/types/with";
 import type { CreateServiceOptions } from "dockerode";
+import { getGlobalSwarmPlacementConstraints } from "../../services/web-server-settings";
 import {
 	calculateResources,
 	generateBindMounts,
@@ -15,6 +16,7 @@ export type PostgresNested = InferResultType<
 	{ mounts: true; environment: { with: { project: true } } }
 >;
 export const buildPostgres = async (postgres: PostgresNested) => {
+	const globalPlacementConstraints = await getGlobalSwarmPlacementConstraints();
 	const {
 		appName,
 		env,
@@ -48,7 +50,11 @@ export const buildPostgres = async (postgres: PostgresNested) => {
 		StopGracePeriod,
 		EndpointSpec,
 		Ulimits,
-	} = generateConfigContainer(postgres);
+	} = generateConfigContainer(
+		postgres,
+		postgres.environment.project.defaultPlacementSwarm,
+		globalPlacementConstraints,
+	);
 	const resources = calculateResources({
 		memoryLimit,
 		memoryReservation,

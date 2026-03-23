@@ -1,10 +1,11 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text } from "drizzle-orm/pg-core";
+import { json, pgTable, text } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { organization } from "./account";
 import { environments } from "./environment";
+import { type PlacementSwarm, PlacementSwarmSchema } from "./shared";
 
 export const projects = pgTable("project", {
 	projectId: text("projectId")
@@ -21,6 +22,7 @@ export const projects = pgTable("project", {
 		.notNull()
 		.references(() => organization.id, { onDelete: "cascade" }),
 	env: text("env").notNull().default(""),
+	defaultPlacementSwarm: json("defaultPlacementSwarm").$type<PlacementSwarm>(),
 });
 
 export const projectRelations = relations(projects, ({ many, one }) => ({
@@ -63,5 +65,6 @@ export const apiRemoveProject = createSchema
 
 export const apiUpdateProject = createSchema.partial().extend({
 	projectId: z.string().min(1),
+	defaultPlacementSwarm: PlacementSwarmSchema.nullable().optional(),
 });
 // .omit({ serverId: true });

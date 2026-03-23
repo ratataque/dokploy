@@ -33,6 +33,7 @@ import { AddCompose } from "@/components/dashboard/project/add-compose";
 import { AddDatabase } from "@/components/dashboard/project/add-database";
 import { AddTemplate } from "@/components/dashboard/project/add-template";
 import { AdvancedEnvironmentSelector } from "@/components/dashboard/project/advanced-environment-selector";
+import { DefaultPlacementSettings } from "@/components/dashboard/project/default-placement-settings";
 import { DuplicateProject } from "@/components/dashboard/project/duplicate-project";
 import { EnvironmentVariables } from "@/components/dashboard/project/environment-variables";
 import { ProjectEnvironment } from "@/components/dashboard/projects/project-environment";
@@ -906,6 +907,9 @@ const EnvironmentPage = (
 									<ProjectEnvironment projectId={projectId}>
 										<Button variant="outline">Project Environment</Button>
 									</ProjectEnvironment>
+									<DefaultPlacementSettings projectId={projectId}>
+										<Button variant="outline">Default Placement</Button>
+									</DefaultPlacementSettings>
 									{permissions?.service.create && (
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>

@@ -1,5 +1,6 @@
 import type { InferResultType } from "@dokploy/server/types/with";
 import type { CreateServiceOptions } from "dockerode";
+import { getGlobalSwarmPlacementConstraints } from "../../services/web-server-settings";
 import {
 	calculateResources,
 	generateBindMounts,
@@ -15,6 +16,7 @@ export type MariadbNested = InferResultType<
 	{ mounts: true; environment: { with: { project: true } } }
 >;
 export const buildMariadb = async (mariadb: MariadbNested) => {
+	const globalPlacementConstraints = await getGlobalSwarmPlacementConstraints();
 	const {
 		appName,
 		env,
@@ -49,7 +51,11 @@ export const buildMariadb = async (mariadb: MariadbNested) => {
 		StopGracePeriod,
 		EndpointSpec,
 		Ulimits,
-	} = generateConfigContainer(mariadb);
+	} = generateConfigContainer(
+		mariadb,
+		mariadb.environment.project.defaultPlacementSwarm,
+		globalPlacementConstraints,
+	);
 	const resources = calculateResources({
 		memoryLimit,
 		memoryReservation,

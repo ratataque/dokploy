@@ -1,5 +1,6 @@
 import type { InferResultType } from "@dokploy/server/types/with";
 import type { CreateServiceOptions } from "dockerode";
+import { getGlobalSwarmPlacementConstraints } from "../../services/web-server-settings";
 import {
 	calculateResources,
 	generateBindMounts,
@@ -16,6 +17,7 @@ export type MongoNested = InferResultType<
 >;
 
 export const buildMongo = async (mongo: MongoNested) => {
+	const globalPlacementConstraints = await getGlobalSwarmPlacementConstraints();
 	const {
 		appName,
 		env,
@@ -95,7 +97,11 @@ ${command ?? "wait $MONGOD_PID"}`;
 		StopGracePeriod,
 		EndpointSpec,
 		Ulimits,
-	} = generateConfigContainer(mongo);
+	} = generateConfigContainer(
+		mongo,
+		mongo.environment.project.defaultPlacementSwarm,
+		globalPlacementConstraints,
+	);
 
 	const resources = calculateResources({
 		memoryLimit,

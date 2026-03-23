@@ -42,3 +42,10 @@ export const updateWebServerSettings = async (
 
 	return updated;
 };
+
+export const getGlobalSwarmPlacementConstraints = async () => {
+	const settings = await getWebServerSettings();
+	return (settings?.swarmDefaultsConfig?.placementConstraints ?? []).filter(
+		Boolean,
+	);
+};
